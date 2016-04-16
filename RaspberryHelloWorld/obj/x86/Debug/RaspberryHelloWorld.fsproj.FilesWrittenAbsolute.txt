@@ -1,0 +1,5 @@
+/Users/sotomski/Developer/RaspberryHelloWorld/RaspberryHelloWorld/obj/x86/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.fs
+/Users/sotomski/Developer/RaspberryHelloWorld/RaspberryHelloWorld/bin/Debug/RaspberryHelloWorld.exe.mdb
+/Users/sotomski/Developer/RaspberryHelloWorld/RaspberryHelloWorld/bin/Debug/RaspberryHelloWorld.exe
+/Users/sotomski/Developer/RaspberryHelloWorld/RaspberryHelloWorld/obj/x86/Debug/RaspberryHelloWorld.exe
+/Users/sotomski/Developer/RaspberryHelloWorld/RaspberryHelloWorld/obj/x86/Debug/RaspberryHelloWorld.exe.mdb
