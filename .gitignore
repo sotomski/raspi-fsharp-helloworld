@@ -4,3 +4,8 @@
 *.exe
 
 *.userprefs
+
+bin/
+obj/
+
+RaspberryHelloWorld/obj/x86/Debug/RaspberryHelloWorld.fsproj.FilesWrittenAbsolute.txt

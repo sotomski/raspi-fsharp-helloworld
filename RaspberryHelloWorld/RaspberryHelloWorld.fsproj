@@ -45,5 +45,13 @@
     <Compile Include="WiringPiWrapper.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Libs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Libs\libwiringPi.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(FSharpTargetsPath)" />
 </Project>
