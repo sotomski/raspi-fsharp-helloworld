@@ -43,8 +43,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="WiringPiWrapper.fs" />
-    <Compile Include="Program.fs" />
     <Compile Include="Dht22.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Libs\" />

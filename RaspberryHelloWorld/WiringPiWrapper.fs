@@ -1,4 +1,4 @@
-﻿module WiringPiWrapper
+﻿module RasPi
 
 open System
 open System.Runtime.InteropServices
@@ -13,6 +13,29 @@ module private WiringPiImports =
 
   [<DllImport( "libwiringPi.so", EntryPoint="digitalWrite", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
   extern void digitalWrite( int pin, int state );
+
+  [<DllImport( "libwiringPi.so", EntryPoint="digitalRead", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
+  extern int digitalRead( int pin );
+
+  // Delays and timing functions
+  [<DllImport( "libwiringPi.so", EntryPoint="millis", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
+  extern uint32 millis();
+
+  [<DllImport( "libwiringPi.so", EntryPoint="micros", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
+  extern uint32 micros();
+
+  [<DllImport( "libwiringPi.so", EntryPoint="delay", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
+  extern uint32 delayMilliseconds(uint32 howLong);
+
+  [<DllImport( "libwiringPi.so", EntryPoint="delayMicroseconds", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
+  extern uint32 delayMicroseconds(uint32 howLong);
+
+  // Attempts to shift the program to a higher priority and enables real-time scheduling.
+  // Param: priority should be from 0 (default) - 99 (max prio). 
+  // Returns 0 if operation was successful; -1 for error
+  // It is possible to consult errno global variable for more information about the error.
+  [<DllImport( "libwiringPi.so", EntryPoint="piHiPri", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
+  extern int piHiPri(int priority);
 
 
 type pinMode =
@@ -43,18 +66,28 @@ type pinId =
   | wipi10 = 10
   | pin24 = 10
 
+type GpioPin = { PinId:pinId; Mode:pinMode }
 
 let wiringPiSetup() =
   let res = WiringPiImports.WiringPiSetup()
   if res <> 0 then
-    failwith ("init failed with " + (res.ToString()))
+      failwith ("init failed with " + (res.ToString()))
+
+  let prioResult = WiringPiImports.piHiPri(99)
+  if prioResult <> 0 then
+      failwith ("execution priority setup failed during initialization with " + prioResult.ToString())
+
 
 let pinMode (pin:pinId) mode =
   match mode with
     | In -> WiringPiImports.pinMode( int pin, 0 )
     | Out -> WiringPiImports.pinMode( int pin, 1 )
 
+
 let digitalWrite (pin:pinId) state =
   match state with
     | High -> WiringPiImports.digitalWrite( int pin, 1 )
     | Low -> WiringPiImports.digitalWrite( int pin, 0 )
+
+
+let digitalRead (pin:pinId) = Low
