@@ -44,7 +44,16 @@ module PiTimer =
         static member perMillisecond = 1000<us/ms>
 
     let millisSinceSetup = int(WiringPiImports.millis()) * 1<ms>
-    let microsecondsSinceSetup = int(WiringPiImports.micros()) * 1<us>
+    let microsSinceSetup = int(WiringPiImports.micros()) * 1<us>
+
+    let delayMillis (howLong:int<ms>) = 
+        let rawHowLong = uint32(howLong/ 1<ms>)
+        WiringPiImports.delayMilliseconds(rawHowLong)
+
+    let delayMicros (howLong:int<us>) = 
+        let rawHowLong = uint32(howLong/ 1<us>)
+        WiringPiImports.delayMicroseconds(rawHowLong)
+
 
 type pinMode =
   | In
