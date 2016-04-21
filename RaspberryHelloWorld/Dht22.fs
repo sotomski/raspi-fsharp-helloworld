@@ -2,7 +2,7 @@
 
 module Dht22
 
-open WiringPiWrapper
+open RasPi
 
 type Dht22 = { Pin:GpioPin } // Placeholder for the sensor
 
@@ -25,7 +25,7 @@ let private internalGetReadout sensor =
     RasPi.setPinMode pin In
     let snapshotValue = RasPi.digitalRead pin
     let timeoutTickCount = 1
-
+    0
 
 
 // Get temp / humidity

@@ -78,7 +78,7 @@ let wiringPiSetup() =
       failwith ("execution priority setup failed during initialization with " + prioResult.ToString())
 
 
-let pinMode (pin:pinId) mode =
+let setPinMode (pin:pinId) mode =
   match mode with
     | In -> WiringPiImports.pinMode( int pin, 0 )
     | Out -> WiringPiImports.pinMode( int pin, 1 )

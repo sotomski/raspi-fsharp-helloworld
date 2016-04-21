@@ -2,7 +2,7 @@
 // See the 'F# Tutorial' project for more help.
 module MainModule
 
-open WiringPiWrapper
+open RasPi
 open System.Threading
 
 [<EntryPoint>]
@@ -11,7 +11,7 @@ let main argv =
     wiringPiSetup()
 
     printfn "Setting up the pin"
-    pinMode pinId.wipi0 Out
+    setPinMode pinId.wipi0 Out
 
     printfn "Pin High"
     digitalWrite pinId.wipi0 High
