@@ -37,6 +37,14 @@ module private WiringPiImports =
   [<DllImport( "libwiringPi.so", EntryPoint="piHiPri", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
   extern int piHiPri(int priority);
 
+module PiTimer =
+    [<Measure>] type ms // milliseconds
+    [<Measure>] 
+    type us = // microseconds
+        static member perMillisecond = 1000<us/ms>
+
+    let millisSinceSetup = int(WiringPiImports.millis()) * 1<ms>
+    let microsecondsSinceSetup = int(WiringPiImports.micros()) * 1<us>
 
 type pinMode =
   | In
@@ -90,4 +98,10 @@ let digitalWrite (pin:pinId) state =
     | Low -> WiringPiImports.digitalWrite( int pin, 0 )
 
 
-let digitalRead (pin:pinId) = Low
+let digitalRead (pin:pinId) = 
+    let readout = WiringPiImports.digitalRead( int pin )
+    match readout with
+    | 0 -> Low
+    | 1 -> High
+    | _ -> failwith ("unexpected readout from pin" + pin.ToString())
+
