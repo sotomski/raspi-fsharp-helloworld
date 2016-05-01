@@ -53,11 +53,6 @@ module PiTimer =
         WiringPiImports.delayMilliseconds(rawHowLong)
         |> checkForError
 
-    let delayMicros (howLong:int<us>) = 
-        let rawHowLong = uint32(howLong/ 1<us>)
-        WiringPiImports.delayMicroseconds(rawHowLong)
-        |> checkForError
-
 type pinMode =
   | In
   | Out
