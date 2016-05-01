@@ -17,7 +17,7 @@ let create inputPin =
 
 // Performs a simple analysis of raising and falling edges
 // and tries calculate relative lengths of low and high portions of the signal.
-let calculatePulses (edges: int array) =
+let private calculateTempAndHumidity (edges: int array) =
     // Don't need lows for the calculation
     let onlyHighs = [| for i, x in Array.mapi (fun i x -> i, x) edges do
                         if i % 2 = 0 then yield x |]
@@ -41,14 +41,15 @@ let calculatePulses (edges: int array) =
         |> Array.fold (fun (index, decValue) el -> (index + 1, decValue + (el <<< index))) (0, 0)
         |> fun (_, t) -> float t / 10.0
 
-    printfn "Temperature: %A            Humidity: %A" temperature humidity
-
-
+    // HERE IS A GOOD PLACE FOR RAILROAD ERROR HANDLING
     //let checkSum = binarySignal |> Array.sub 32 8
+
+    { Temperature = temperature; Humidity = humidity }
+
 
 
 // Internal implementation of DHT22 protocol specifics
-let  internalGetReadout sensor =
+let private internalGetReadout sensor =
     let pin = sensor.Pin
     let magicTimeoutValue = 32000
     let dhtPulseCount = 41
@@ -89,17 +90,13 @@ let  internalGetReadout sensor =
     //printfn "Edges: %A" edges
 
     // First two readouts are communication protocol pulses (Sensor pull low and then pull up)
-    let pulses = Array.sub edges 2 (edges.Length-2) |> calculatePulses
-
-    0
+    Array.sub edges 2 (edges.Length-2) |> calculateTempAndHumidity
 
 
 // Get temp / humidity
-let getReadout sensor =
-    let maxRetries = 20
+let getReadout sensor : Option<Readout> =
+    let maxRetries = 3
 
-    //for iter in 1 .. maxRetries do
-
-
-    { Temperature = 0.0; Humidity = 0.0 }
-
+    match internalGetReadout sensor with
+    | r when r.Humidity > 0.0 && r.Temperature > 0.0 -> Some r
+    | _ -> None
