@@ -1,4 +1,5 @@
-﻿// Following implementation is a F# port of this library: https://github.com/porrey/dht/blob/master/source/Windows%2010%20IoT%20Core/DHT%20Solution/Sensors.Dht/Dht22.cpp
+﻿// Datasheet used as reference for implementation: https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf
+// Following implementation is a F# port of this library: https://github.com/adafruit/Adafruit_Python_DHT
 
 module Dht22
 
@@ -8,7 +9,7 @@ open RasPi.PiTimer
 
 type Dht22 = { Pin:RasPi.pinId } // Placeholder for the sensor
 
-type Readout = { Temperature:int; Humidity:int }
+type Readout = { Temperature:float; Humidity:float }
 
 // Create
 let create inputPin = 
@@ -16,16 +17,34 @@ let create inputPin =
 
 // Performs a simple analysis of raising and falling edges
 // and tries calculate relative lengths of low and high portions of the signal.
-let calculatePulses edges =
+let calculatePulses (edges: int array) =
     // Don't need lows for the calculation
     let onlyHighs = [| for i, x in Array.mapi (fun i x -> i, x) edges do
                         if i % 2 = 0 then yield x |]
 
-    printfn "Only highs: %A" onlyHighs
+    //printfn "Only highs: %A" onlyHighs
 
-    //let lengths = 
-    //    onlyHighs
-    //    |> Array
+    let threshold = onlyHighs |> Array.averageBy (fun elem -> float elem)
+    let binarySignal = onlyHighs |> Array.map (fun x -> if float x <= threshold then 0 else 1)
+
+    //printfn "Binary signal: %A" binarySignal
+   
+    let humidity = 
+        Array.sub binarySignal 0 16 
+        |> Array.rev
+        |> Array.fold (fun (index, decValue) el -> (index + 1, decValue + (el <<< index))) (0, 0)
+        |> fun (_, h) -> float h / 10.0
+
+    let temperature = 
+        Array.sub binarySignal 16 16
+        |> Array.rev
+        |> Array.fold (fun (index, decValue) el -> (index + 1, decValue + (el <<< index))) (0, 0)
+        |> fun (_, t) -> float t / 10.0
+
+    printfn "Temperature: %A            Humidity: %A" temperature humidity
+
+
+    //let checkSum = binarySignal |> Array.sub 32 8
 
 
 // Internal implementation of DHT22 protocol specifics
@@ -44,10 +63,12 @@ let  internalGetReadout sensor =
     RasPi.setPriority Max |> ignore
 
     RasPi.digitalWrite pin Low
-    RasPi.PiTimer.delayMillis 1<ms>
+    RasPi.PiTimer.delayMillis 2<ms>
 
     RasPi.digitalWrite pin High
-    //RasPi.PiTimer.delayMicros 20<us>
+    // Wait until sensor starts pulling up (according to spec min 100 < x < 120)
+    // I am using 140 just to be sure
+    RasPi.PiTimer.delayMicros 140<us>
 
     RasPi.setPinMode pin In
 
@@ -63,11 +84,12 @@ let  internalGetReadout sensor =
 
     RasPi.setPriority Default |> ignore
 
-    printfn "End of time-critical operation"
+    //printfn "End of time-critical operation"
 
-    printfn "Edges: %A" edges
+    //printfn "Edges: %A" edges
 
-    let pulses = calculatePulses edges
+    // First two readouts are communication protocol pulses (Sensor pull low and then pull up)
+    let pulses = Array.sub edges 2 (edges.Length-2) |> calculatePulses
 
     0
 
@@ -79,5 +101,5 @@ let getReadout sensor =
     //for iter in 1 .. maxRetries do
 
 
-    { Temperature = 0; Humidity = 0 }
+    { Temperature = 0.0; Humidity = 0.0 }
 

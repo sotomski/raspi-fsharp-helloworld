@@ -13,7 +13,7 @@ let main argv =
     printfn "Going into the loop"
     while true do
         printfn "Sleep..."
-        Thread.Sleep 2000
+        Thread.Sleep 2500
         printfn "Getting the readout"
         let dht22 = Dht22.create pinId.gpio23
         Dht22.internalGetReadout dht22 |> ignore

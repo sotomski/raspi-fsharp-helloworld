@@ -27,6 +27,9 @@ module private WiringPiImports =
   [<DllImport( "libwiringPi.so", EntryPoint="delay", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
   extern uint32 delayMilliseconds(uint32 howLong);
 
+  [<DllImport( "libwiringPi.so", EntryPoint="delayMicroseconds", CallingConvention = CallingConvention.Cdecl, SetLastError=false )>]
+  extern void delayMicroseconds(uint32 howLong);
+
   // Attempts to shift the program to a higher priority and enables real-time scheduling.
   // Param: priority should be from 0 (default) - 99 (max prio). 
   // Returns 0 if operation was successful; -1 for error
@@ -52,6 +55,11 @@ module PiTimer =
         let rawHowLong = uint32(howLong/ 1<ms>)
         WiringPiImports.delayMilliseconds(rawHowLong)
         |> checkForError
+
+    let delayMicros (howLong:int<us>) =
+        let rawHowLong = uint32(howLong/ 1<us>)
+        WiringPiImports.delayMicroseconds(rawHowLong)
+        //|> checkForError
 
 type pinMode =
   | In
