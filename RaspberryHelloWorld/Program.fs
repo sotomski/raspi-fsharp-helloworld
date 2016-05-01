@@ -10,27 +10,13 @@ let main argv =
     printfn "Setting up wiringPi"
     wiringPiSetup()
 
-    printfn "Setting up the pin"
-    setPinMode pinId.wipi0 Out
-
-    printfn "Pin High"
-    digitalWrite pinId.wipi0 High
-    printfn "Sleep 1000"
-    Thread.Sleep(1000)
-    printfn "Pin Low"
-    digitalWrite pinId.wipi0 Low
-    printfn "Sleep 1000"
-    Thread.Sleep(1000)
-    printfn "Pin High"
-    digitalWrite pinId.wipi0 High
-    printfn "Sleep 1000"
-    Thread.Sleep(1000)
-    printfn "Pin Low"
-    digitalWrite pinId.wipi0 Low
-    printfn "Sleep 1000"
-    Thread.Sleep(1000)
-    printfn "Pin High"
-    digitalWrite pinId.wipi0 High
+    printfn "Going into the loop"
+    while true do
+        printfn "Sleep..."
+        Thread.Sleep 2000
+        printfn "Getting the readout"
+        let dht22 = Dht22.create pinId.gpio23
+        Dht22.internalGetReadout dht22 |> ignore
 
     0 // return an integer exit code
 

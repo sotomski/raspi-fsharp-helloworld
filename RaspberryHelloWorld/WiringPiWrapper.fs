@@ -27,9 +27,6 @@ module private WiringPiImports =
   [<DllImport( "libwiringPi.so", EntryPoint="delay", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
   extern uint32 delayMilliseconds(uint32 howLong);
 
-  [<DllImport( "libwiringPi.so", EntryPoint="delayMicroseconds", CallingConvention = CallingConvention.Cdecl, SetLastError=true )>]
-  extern uint32 delayMicroseconds(uint32 howLong);
-
   // Attempts to shift the program to a higher priority and enables real-time scheduling.
   // Param: priority should be from 0 (default) - 99 (max prio). 
   // Returns 0 if operation was successful; -1 for error
@@ -46,14 +43,20 @@ module PiTimer =
     let millisSinceSetup = int(WiringPiImports.millis()) * 1<ms>
     let microsSinceSetup = int(WiringPiImports.micros()) * 1<us>
 
+    let private checkForError i =
+        let ii = int i
+        if ii <> 0 then 
+            failwithf "Execution of delay failed: %d" ii
+
     let delayMillis (howLong:int<ms>) = 
         let rawHowLong = uint32(howLong/ 1<ms>)
         WiringPiImports.delayMilliseconds(rawHowLong)
+        |> checkForError
 
     let delayMicros (howLong:int<us>) = 
         let rawHowLong = uint32(howLong/ 1<us>)
         WiringPiImports.delayMicroseconds(rawHowLong)
-
+        |> checkForError
 
 type pinMode =
   | In
@@ -64,6 +67,9 @@ type pinState =
   | Low
 
 type pinId =
+  | gpio18 = 1
+  | wipi1 = 1
+  | pin12 = 1
   | gpio14 = 15
   | wipi15 = 15
   | pin8 = 15
@@ -76,24 +82,28 @@ type pinId =
   | gpio24 = 5
   | wipi5 = 5
   | pin18 = 5
-  | gpio18 = 1
-  | wipi1 = 1
-  | pin12 = 1
+  | gpio4 = 7
+  | wipi7 = 7
+  | pin7 = 7
   | gpio8 = 10
   | wipi10 = 10
   | pin24 = 10
 
-type GpioPin = { PinId:pinId; Mode:pinMode }
+//type GpioPin = { PinId:pinId; Mode:pinMode }
+
+type Priority = 
+    | Default 
+    | Max
+
+let setPriority prio = 
+    match prio with
+    | Max -> WiringPiImports.piHiPri 99
+    | _ -> WiringPiImports.piHiPri 0
 
 let wiringPiSetup() =
   let res = WiringPiImports.WiringPiSetup()
   if res <> 0 then
       failwith ("init failed with " + (res.ToString()))
-
-  let prioResult = WiringPiImports.piHiPri(99)
-  if prioResult <> 0 then
-      failwith ("execution priority setup failed during initialization with " + prioResult.ToString())
-
 
 let setPinMode (pin:pinId) mode =
   match mode with

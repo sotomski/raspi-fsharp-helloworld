@@ -2,9 +2,11 @@
 
 module Dht22
 
+open System
 open RasPi
+open RasPi.PiTimer
 
-type Dht22 = { Pin:GpioPin } // Placeholder for the sensor
+type Dht22 = { Pin:RasPi.pinId } // Placeholder for the sensor
 
 type Readout = { Temperature:int; Humidity:int }
 
@@ -12,19 +14,61 @@ type Readout = { Temperature:int; Humidity:int }
 let create inputPin = 
     { Pin = inputPin }
 
+// Performs a simple analysis of raising and falling edges
+// and tries calculate relative lengths of low and high portions of the signal.
+let calculatePulses edges =
+    // Don't need lows for the calculation
+    let onlyHighs = [| for i, x in Array.mapi (fun i x -> i, x) edges do
+                        if i % 2 = 0 then yield x |]
+
+    printfn "Only highs: %A" onlyHighs
+
+    //let lengths = 
+    //    onlyHighs
+    //    |> Array
+
+
 // Internal implementation of DHT22 protocol specifics
-let private internalGetReadout sensor =
-    let buffer = Array.zeroCreate 40
-    let pin = sensor.Pin.PinId
+let  internalGetReadout sensor =
+    let pin = sensor.Pin
+    let magicTimeoutValue = 32000
+    let dhtPulseCount = 41
+    // Prepare memory
+    let edges : int array = Array.zeroCreate (dhtPulseCount * 2)
+    let indexes = [| for i in 0 .. (edges.Length/2 - 1)  -> i * 2 |]
 
-    // Initialize communication
+    // Initialize communication with DHT22
     RasPi.setPinMode pin Out
-    RasPi.digitalWrite pin Low
 
-    // Wait for the first rising edge (response start from the sensor)
+    // From this point on the operations should be as real-time as possible
+    RasPi.setPriority Max |> ignore
+
+    RasPi.digitalWrite pin Low
+    RasPi.PiTimer.delayMillis 1<ms>
+
+    RasPi.digitalWrite pin High
+    //RasPi.PiTimer.delayMicros 20<us>
+
     RasPi.setPinMode pin In
-    let snapshotValue = RasPi.digitalRead pin
-    let timeoutTickCount = 1
+
+    // Reading the actual lows and highs
+    for i in indexes do
+        // Count how long pin is low
+        while (RasPi.digitalRead pin = High) && (edges.[i] < magicTimeoutValue) do
+            edges.[i] <- edges.[i] + 1
+
+        // Count how long pin is high
+        while (RasPi.digitalRead pin = Low) && (edges.[i] < magicTimeoutValue) do
+            edges.[i+1] <- edges.[i+1] + 1
+
+    RasPi.setPriority Default |> ignore
+
+    printfn "End of time-critical operation"
+
+    printfn "Edges: %A" edges
+
+    let pulses = calculatePulses edges
+
     0
 
 
